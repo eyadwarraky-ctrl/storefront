@@ -13,9 +13,11 @@ import { OrderTimeline } from "@/ui/components/account/order-timeline";
 import { OrderStatusBadge } from "@/ui/components/account/order-status-badge";
 import { AccountOrderDetailSkeleton } from "@/ui/components/account/account-skeleton";
 import { type AddressDetailsFragment } from "@/gql/graphql";
+import { getBuyAgainOrders } from "@/lib/account/buy-again";
+import { BuyAgainActions } from "@/ui/components/account/buy-again/buy-again-actions";
 
 type Props = {
-	params: Promise<{ locale: string; number: string }>;
+	params: Promise<{ locale: string; channel: string; number: string }>;
 };
 
 export default function OrderDetailPage({ params }: Props) {
@@ -27,17 +29,22 @@ export default function OrderDetailPage({ params }: Props) {
 }
 
 async function OrderDetailContent({ params }: Props) {
-	const { number, locale } = await params;
+	const { number, locale, channel } = await params;
 	const intlLocale = resolveLocaleFromSlug(locale).bcp47;
 	const t = await getTranslations({ locale, namespace: "account.orderDetail" });
 	const tCommon = await getTranslations({ locale, namespace: "account.common" });
 	const tOrders = await getTranslations({ locale, namespace: "account.orders" });
+	const tBuyAgain = await getTranslations({ locale, namespace: "account.buyAgain" });
 
 	if (!(await hasAuthSession())) {
 		return <p className="text-sm text-muted-foreground">{t("signInRequired")}</p>;
 	}
 
-	const result = await getOrdersForNumberLookup(locale);
+	const [result, buyAgainOrders] = await Promise.all([
+		getOrdersForNumberLookup(locale),
+		getBuyAgainOrders(locale, channel),
+	]);
+	const buyAgainOrder = buyAgainOrders?.find((candidate) => candidate.number === number);
 
 	if (!result.ok) {
 		return <p className="text-sm text-muted-foreground">{t("loadFailed")}</p>;
@@ -66,6 +73,21 @@ async function OrderDetailContent({ params }: Props) {
 				</div>
 				<OrderStatusBadge status={order.status} statusDisplay={order.statusDisplay} localeSlug={locale} />
 			</div>
+
+			{buyAgainOrder && (
+				<div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-secondary/30 px-5 py-4">
+					<div>
+						<p className="text-sm font-medium">{tBuyAgain("dialogTitle")}</p>
+						<p className="text-[13px] text-muted-foreground">
+							{tBuyAgain("availableSummary", {
+								available: buyAgainOrder.availableCount,
+								total: buyAgainOrder.items.length,
+							})}
+						</p>
+					</div>
+					<BuyAgainActions order={buyAgainOrder} intlLocale={intlLocale} size="default" />
+				</div>
+			)}
 
 			<div className="grid gap-6 lg:grid-cols-[1fr_320px]">
 				<div className="space-y-6">

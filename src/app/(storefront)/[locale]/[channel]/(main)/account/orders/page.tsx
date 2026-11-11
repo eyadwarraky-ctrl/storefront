@@ -8,11 +8,14 @@ import { LinkWithChannel } from "@/ui/atoms/link-with-channel";
 import { Button } from "@/ui/components/ui/button";
 import { accountRoutes } from "@/ui/components/account/routes";
 import { AccountOrdersListSkeleton } from "@/ui/components/account/account-skeleton";
+import { getBuyAgainOrders } from "@/lib/account/buy-again";
+import { resolveLocaleFromSlug } from "@/config/locale";
+import { BuyAgainActions } from "@/ui/components/account/buy-again/buy-again-actions";
 
 const ORDERS_PER_PAGE = 10;
 
 type Props = {
-	params: Promise<{ locale: string }>;
+	params: Promise<{ locale: string; channel: string }>;
 	searchParams: Promise<{ after?: string }>;
 };
 
@@ -25,7 +28,8 @@ export default function AccountOrdersPage({ params, searchParams }: Props) {
 }
 
 async function AccountOrdersContent({ params, searchParams }: Props) {
-	const [{ locale }, { after }] = await Promise.all([params, searchParams]);
+	const [{ locale, channel }, { after }] = await Promise.all([params, searchParams]);
+	const intlLocale = resolveLocaleFromSlug(locale).bcp47;
 	const t = await getTranslations({ locale, namespace: "account.orders" });
 	const tErrors = await getTranslations({ locale, namespace: "account.errors" });
 	const tOrder = await getTranslations({ locale, namespace: "account" });
@@ -35,7 +39,11 @@ async function AccountOrdersContent({ params, searchParams }: Props) {
 		return <AccountOrdersError title={t("title")} message={t("signInRequired")} />;
 	}
 
-	const result = await getCurrentUserOrders(locale, ORDERS_PER_PAGE, after);
+	const [result, buyAgainOrders] = await Promise.all([
+		getCurrentUserOrders(locale, ORDERS_PER_PAGE, after),
+		getBuyAgainOrders(locale, channel),
+	]);
+	const buyAgainByNumber = new Map((buyAgainOrders ?? []).map((order) => [order.number, order]));
 
 	if (!result.ok) {
 		return <AccountOrdersError title={t("title")} message={tErrors("loadOrdersFailed")} />;
@@ -64,14 +72,21 @@ async function AccountOrdersContent({ params, searchParams }: Props) {
 			) : (
 				<>
 					<div className="space-y-2">
-						{orders.map(({ node: order }) => (
-							<OrderRow
-								key={order.id}
-								order={order}
-								localeSlug={locale}
-								labels={buildOrderRowLabels(tOrder, tStatus, order)}
-							/>
-						))}
+						{orders.map(({ node: order }) => {
+							const buyAgainOrder = buyAgainByNumber.get(order.number);
+							const action = buyAgainOrder ? (
+								<BuyAgainActions order={buyAgainOrder} intlLocale={intlLocale} />
+							) : undefined;
+							return (
+								<OrderRow
+									key={order.id}
+									order={order}
+									localeSlug={locale}
+									labels={buildOrderRowLabels(tOrder, tStatus, order)}
+									action={action}
+								/>
+							);
+						})}
 					</div>
 
 					{pageInfo?.hasNextPage && pageInfo.endCursor && (

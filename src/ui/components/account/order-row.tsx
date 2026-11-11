@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { type OrderDetailsFragment } from "@/gql/graphql";
@@ -12,9 +13,11 @@ type Props = {
 	order: OrderDetailsFragment;
 	localeSlug: string;
 	labels: OrderRowLabels;
+	/** Secondary action rendered beside the row link (kept outside it — no nested interactives). */
+	action?: ReactNode;
 };
 
-export function OrderRow({ order, localeSlug, labels }: Props) {
+export function OrderRow({ order, localeSlug, labels, action }: Props) {
 	const intlLocale = resolveLocaleFromSlug(localeSlug).bcp47;
 
 	const thumbnails = order.lines
@@ -25,16 +28,20 @@ export function OrderRow({ order, localeSlug, labels }: Props) {
 	const style = orderStatusStyle[order.status] ?? defaultStatusStyle;
 	const StatusIcon = style.icon;
 
-	return (
+	const link = (
 		<LinkWithChannel
 			href={accountRoutes.orderDetail(order.number)}
-			className="hover:bg-secondary/30 flex items-center gap-4 rounded-lg border px-5 py-4 transition-colors"
+			className={
+				action
+					? "flex min-w-0 flex-1 items-center gap-4 rounded-lg px-5 py-4 transition-colors hover:bg-secondary/30"
+					: "flex items-center gap-4 rounded-lg border px-5 py-4 transition-colors hover:bg-secondary/30"
+			}
 		>
 			<div className="flex -space-x-3">
 				{thumbnails.map((thumb, i) => (
 					<div
 						key={i}
-						className="bg-secondary/40 h-12 w-12 shrink-0 overflow-hidden rounded-lg border-2 border-background"
+						className="h-12 w-12 shrink-0 overflow-hidden rounded-lg border-2 border-background bg-secondary/40"
 					>
 						<Image
 							src={thumb.url}
@@ -72,5 +79,16 @@ export function OrderRow({ order, localeSlug, labels }: Props) {
 				<ArrowRight className="h-4 w-4 text-muted-foreground" />
 			</div>
 		</LinkWithChannel>
+	);
+
+	if (!action) {
+		return link;
+	}
+
+	return (
+		<div className="flex flex-col rounded-lg border sm:flex-row sm:items-center">
+			{link}
+			<div className="border-t px-5 py-3 sm:border-l sm:border-t-0 sm:py-4">{action}</div>
+		</div>
 	);
 }

@@ -1,0 +1,53 @@
+query BuyAgainOrders($first: Int, $languageCode: LanguageCodeEnum!) {
+	me {
+		id
+		orders(first: $first) {
+			edges {
+				node {
+					id
+					number
+					created
+					channel {
+						slug
+					}
+					lines {
+						id
+						quantity
+						productName
+						variantName
+						variant {
+							id
+							name
+							translation(languageCode: $languageCode) {
+								name
+							}
+							quantityAvailable
+							quantityLimitPerCustomer
+							pricing {
+								price {
+									gross {
+										amount
+										currency
+									}
+								}
+							}
+							product {
+								id
+								name
+								slug
+								isAvailableForPurchase
+								translation(languageCode: $languageCode) {
+									name
+								}
+								thumbnail(size: 256, format: WEBP) {
+									url
+									alt
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

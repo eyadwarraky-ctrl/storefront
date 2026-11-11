@@ -33,6 +33,7 @@ Rows are keyed by file and enclosing function, not line, so formatting does not 
 | mutate           | AccountSetDefaultAddressDocument        | —                                             | src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts › setDefaultAddress         |
 | mutate           | AccountAddressUpdateDocument            | —                                             | src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts › updateAddress             |
 | mutate           | AccountUpdateDocument                   | —                                             | src/app/(storefront)/[locale]/[channel]/(main)/account/actions.ts › updateProfile             |
+| mutate           | CheckoutLinesAddManyDocument            | —                                             | src/app/(storefront)/[locale]/[channel]/(main)/account/orders/actions.ts › buyAgain           |
 | mutate           | CheckoutAddLineDocument                 | —                                             | src/app/actions.ts › addVariantToCart                                                         |
 | mutate           | CheckoutDeleteLinesDocument             | —                                             | src/app/actions.ts › deleteCartLine                                                           |
 | mutate           | CheckoutLinesUpdateDocument             | —                                             | src/app/actions.ts › updateCartLineQuantity                                                   |
@@ -45,6 +46,7 @@ Rows are keyed by file and enclosing function, not line, so formatting does not 
 | liveQuery        | checkoutQueryDocument                   | —                                             | src/checkout/lib/server/fetch-checkout.ts › fetchCheckoutOnServer                             |
 | liveQuery        | ordersByNumberDocument                  | —                                             | src/checkout/lib/server/fetch-order-by-number.ts › fetchOrderByNumberOnServer                 |
 | liveQuery        | orderQueryDocument                      | —                                             | src/checkout/lib/server/fetch-order.ts › fetchOrderOnServer                                   |
+| sessionQuery     | BuyAgainOrdersDocument                  | —                                             | src/lib/account/buy-again.ts › getBuyAgainOrders                                              |
 | sessionQuery     | CurrentUserOrdersPaginatedDocument      | —                                             | src/lib/account/get-orders.ts › getCurrentUserOrders                                          |
 | sessionQuery     | OrderByNumberDocument                   | —                                             | src/lib/account/get-orders.ts › getOrdersForNumberLookup                                      |
 | rawMutation      | —                                       | —                                             | src/lib/auth/confirm-account.ts › confirmAccountWithToken                                     |

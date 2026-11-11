@@ -36,5 +36,9 @@ export const dataExtensions: {
 } = {
 	profiles: {},
 	webhookScopes: {},
-	operations: {},
+	operations: {
+		// Buy again: one session read of recent orders with live availability, one bulk cart add.
+		BuyAgainOrders: { access: "session", auth: "session" },
+		CheckoutLinesAddMany: { access: "mutate", auth: "session" },
+	},
 };
